@@ -1,3 +1,622 @@
+<<<<<<< HEAD
+<<<<<<<< HEAD:index.html
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>Estrutura Inicial</title>
+        <script src="sprite.js"></script>
+        <Style>
+            canvas {
+                position: absolute;
+                top: 0px;
+                bottom: 0px;
+                left: 0px;
+                right: 0px;
+                margin: auto;
+            }
+            #botaoPular {
+                position: absolute;
+                top:630px;
+                left:200px;
+                height:50px;
+                width: 70px;
+            }
+            #botaoAtirar {
+                position: absolute;
+                top:630px;
+                left:275px;
+                height:50px;
+                width: 70px;
+            }
+            #botaoPausa {
+                position: absolute;
+                top:630px;
+                left:425px;
+                height:50px;
+                width: 70px;
+            }
+            
+            #botaoPlay {
+                position: absolute;
+                top:630px;
+                left:425px;
+                height:50px;
+                width: 70px;
+            }
+
+            #botaoArma2 {
+                position: absolute;
+                top:630px;
+                left:350px;
+                height:50px;
+                width: 70px;
+            }
+
+
+
+        </Style>
+
+    </head>
+
+    <body>
+        
+        
+        <script>
+            var canvas, ctx, ALTURA, LARGURA, frames = 0, maxPulos = 3, velocidade = 1.25, estadoAtual, recorde, canvas2, 
+            img,botao, botao2, velocidadeBala = 2,velocidadeBalaMonstro=2,inicioObstaculoGlobal=[],inicioBalaMonstroGlobal= [], alturaObs, matou=0, dano = 10, danoMonstro=10,  vida = 50,vidaTotal = 50,
+            vidaTotalBloco=50, botaoPausa,
+
+            estados = {
+                jogar:0,
+                jogando:1,
+                perdeu:2,
+                pausado:3
+            },
+            chao = {
+                y: 550,
+                altura:50,
+                cor: "#ffdf70",
+
+                desenha:function(){
+                    ctx.fillStyle= this.cor;
+                    ctx.fillRect(0,this.y, LARGURA, this.altura)
+                }
+            },
+            bloco = {
+                x:50,
+                y:0,
+                altura:imgBloco.altura,
+                largura:imgBloco.largura,
+                cor:"#ff4e4e",
+                gravidade:1.5,
+                velocidade:0,
+                forcaDoPulo:20,
+                qtsPulos:0,
+                score:0,
+
+                atualiza:function(){
+                    this.velocidade += this.gravidade;
+                    this.y += this.velocidade;
+
+                    if(this.y > chao.y - this.altura && estadoAtual != estados.perdeu){
+                        this.y = chao.y - this.altura;
+                        this.qtsPulos=0;
+                        this.velocidade= 0;
+                    }
+                },
+
+                pula:function(){
+                    if (this.qtsPulos < maxPulos){
+                    this.velocidade = -this.forcaDoPulo;
+                    this.qtsPulos ++;
+                    }
+                },
+                pausa: function(){
+                    
+                },
+
+                reset: function(){
+                    bloco.velocidade =0;
+                    bloco.y = 0;
+
+                    if (this.score > recorde){
+                        localStorage.setItem("recorde", this.score)
+                        recorde = this.score;
+                    }
+
+
+                    this.score = 0;
+                },
+
+                desenha:function(){
+                   // ctx.fillStyle = this.cor;
+                  //  ctx.fillRect(this.x, this.y, this.largura, this.altura);
+                    imgBloco.desenha(this.x,this.y);
+                }
+            },
+
+            obstaculo ={
+                _obs: [],
+                bala: [],
+                inicioBala: 300,
+                cor:["#78ff5d"],
+                tempoInsere:0,
+
+                insere: function(){
+                    this._obs.unshift({
+                        x: LARGURA,
+                        largura: 50 ,
+                        altura: /*80 + Math.floor(130 * Math.random()),*/80,
+                        cor: this.cor,
+                    });
+                    
+
+                    this.tempoInsere = 30 + Math.floor(500 * Math.random());
+                },
+                atualiza: function(){
+                    if(this.tempoInsere == 0)
+                    this.insere();
+                    else this.tempoInsere--;
+
+                    for(i=0, tam=this._obs.length; i< tam; i++){
+                        var obs = this._obs[i];
+                        alturaObs = obs.altura;
+
+                        obs.x -= velocidade;
+                        
+                        if(this._obs.length>0){
+                           inicioObstaculoGlobal[0] = obs.x;
+                           inicioBalaMonstroGlobal[0] = obs.x;
+
+                        }
+                        if (bloco.x < obs.x + obs.largura && bloco.x + bloco.largura>= obs.x && bloco.y + bloco.altura >= chao.y - obs.altura){
+                            estadoAtual = estados.perdeu;
+
+                            //apaga o botao de pausa se o jogo for perdido pelo toque do obs no bloco
+                                apagarBotaoPausa = document.getElementById("botaoPausa");
+                                if (apagarBotaoPausa.parentNode){
+                                apagarBotaoPausa.parentNode.removeChild(apagarBotaoPausa);
+                                }   
+                            //apaga o botao de pausa se o jogo for perdido pelo toque do obs no bloco                 
+                        
+                        
+                        }
+                        else if (obs.x == 0){
+                            bloco.score++;
+                        }
+
+                        else if(obs.x <= -obs.largura){
+                            this._obs.splice(i,1);
+                            tam--;
+                            i--;
+                        }
+                    }
+                },
+                limpa: function(){
+                    this._obs = [];
+                },
+                pausa:function(){
+                    velocidade = 0;
+                },
+                play:function(){
+                    velocidade = 1.25;
+                },
+                
+                desenha: function(){
+                    for (var i=0,tam=this._obs.length;i<tam;i++){
+                        var obs = this._obs[i]
+                        ctx.fillStyle = obs.cor;
+                        ctx.fillRect(obs.x, chao.y - obs.altura, obs.largura, obs.altura);
+                                              
+                        
+                    }
+                },
+                vida:function(){
+
+                }
+            },
+            // "tiro" é o tiro que o bloco dispara
+            tiro={
+                bala:[],                
+                cor:"#000",                
+                inicioBala:bloco.x +50,
+
+                insere: function (){
+                    if(bloco.y +bloco.altura  == chao.y && estadoAtual == estados.jogando ){
+                    this.bala.unshift({
+                        x: this.inicioBala,
+                        largura: 20,
+                        altura: 10,
+                        
+                    });
+                    }
+                },
+
+                atualiza: function(){
+                    for(var i=0, tam=this.bala.length;i<tam;i++){
+                        _bala = this.bala[i];
+                        _bala.x += velocidadeBala;
+                    
+                     if (_bala.x > LARGURA){
+                         this.bala.splice(i,1);
+                         tam--;
+                         i--;
+                     }
+                    }
+                },
+
+                limpa: function(){
+                    this.bala=[];
+                },
+
+                desenha: function(){
+                    for (var i=0, tam =this.bala.length; i<tam;i++){
+                        _bala = this.bala[i];
+                        
+                        ctx.fillStyle = this.cor;
+                        ctx.fillRect(_bala.x, chao.y - 68, _bala.largura, _bala.altura);
+                        
+                        // desenho do life do obstaculo
+                        if (inicioObstaculoGlobal >= 0 && obstaculo._obs.length > 0){
+                        ctx.fillStyle = "#000";
+                        ctx.fillRect(inicioObstaculoGlobal, 460 , vidaTotal, 5);
+                        }
+                        // desenho do life do obstaculo
+
+                        if (inicioObstaculoGlobal <= _bala.x + _bala.largura && inicioObstaculoGlobal[0] >= bloco.x + bloco.largura  ){                        
+                              
+                            this.bala.pop();
+                           
+                            vidaTotal -= dano
+
+                            if(vidaTotal <= 0){
+                                obstaculo._obs.pop();
+                                inicioObstaculoGlobal = []
+                                matou++;
+                           
+                                vidaTotal = 50;
+                            }
+                           
+                            
+                        }                    
+                    }
+                }
+            },
+            tiroMonstro={
+                balaMonstro:[],
+                cor:"#000",
+                inicioBala: inicioBalaMonstroGlobal,
+                YBala:460,
+                tempoTiroMonstro:0,
+                
+                dano:10,
+                corVida: "#000",
+
+                insere:function(){
+                    if(obstaculo._obs.length > 0){
+                    this.balaMonstro.unshift({
+                        x: this.inicioBala,
+                        largura:20,
+                        altura:10,
+                    }
+                    );}
+                    this.tempoTiroMonstro = 70 + Math.floor(200 * Math.random());
+                },
+            
+                atualiza:function(){
+                    if(this.tempoTiroMonstro == 0)
+                    this.insere();
+                    else this.tempoTiroMonstro--;
+
+                for(var i=0, tam=this.balaMonstro.length;i<tam;i++){
+                    _balaMonstro = this.balaMonstro[i]
+                    _balaMonstro.x -= velocidadeBalaMonstro;
+
+                    if(_balaMonstro.x <= bloco.x + bloco.largura + _balaMonstro.largura &&  /*permite pular a bala----->*/ this.YBala <= (bloco.y + bloco.altura)){
+                        this.balaMonstro.splice(i,1);
+                        vidaTotalBloco -= danoMonstro;
+                    // diminui a vida do bloco principal
+                    if (_balaMonstro.x <= bloco.x){ 
+                        vidaTotalBloco += danoMonstro;
+                    }
+                    // diminui a vida do bloco principal
+
+                        tam--;
+                        i--;
+
+                    }
+                  
+                // aqui é pra destruir o bloco principal
+                    if (vidaTotalBloco<= 9){
+                        estadoAtual = estados.perdeu
+
+                        //apaga o botao de pausa se o jogo for perdido pelos tiros dos OBS
+                            apagarBotaoPausa = document.getElementById("botaoPausa");
+                            if (apagarBotaoPausa.parentNode){
+                                apagarBotaoPausa.parentNode.removeChild(apagarBotaoPausa);
+                            }   
+                        //apaga o botao de pausa se o jogo for perdido pelos tiros dos OBS
+                    }
+                // aqui é pra destruir o bloco principal
+                }
+                },
+
+                limpa:function(){
+                    this.balaMonstro=[];
+                },
+
+                desenha:function(){
+                    for(var i=0, tam=this.balaMonstro.length;i<tam;i++){
+                        _balaMonstro = this.balaMonstro[i];
+
+                        ctx.fillStyle= this.cor;
+                        ctx.fillRect(_balaMonstro.x - _balaMonstro.largura, this.YBala, _balaMonstro.largura, _balaMonstro.altura);
+                        
+                    // desenha o life do bloco principal
+                    if (obstaculo._obs.length > 0){
+                        ctx.fillStyle= this.corVida;
+                        ctx.fillRect(bloco.x, bloco.y - 10, vidaTotalBloco, 5) 
+                    }
+                    // desenha o life do bloco principal                  
+                           
+                    }
+                }                
+            }
+            
+            
+            
+
+            
+            function clique(event){
+                if (estadoAtual == estados.jogar){
+                botaoPausa = document.createElement("button");
+                botaoPausa.id = "botaoPausa";
+                botaoPausa.innerText="Pausa";
+                botaoPausa.setAttribute('onclick', 'pausar()');
+                
+                document.body.appendChild(botaoPausa);
+
+                botaoArma2 = document.createElement("button");
+                botaoArma2.id = "botaoArma2";
+                botaoArma2.innerText="Arma2";
+                botaoArma2.setAttribute('onclick', 'atirar2()');
+                
+                document.body.appendChild(botaoArma2);
+
+                }
+                
+                if (estadoAtual == estados.jogando){
+                bloco.pula();
+
+                }
+                else if (estadoAtual == estados.jogar){
+                    estadoAtual = estados.jogando;
+
+                }
+
+                else if (estadoAtual == estados.perdeu && bloco.y >= 2 * ALTURA){
+                    estadoAtual = estados.jogar;
+                    obstaculo.limpa();
+                    tiro.limpa();
+                    bloco.reset();
+                }
+            }
+            function atirar(event){
+
+                tiro.insere()  
+                
+            }
+
+            function atirar2(event){
+                if(obstaculo._obs.length > 0){
+                dano = 25;
+                tiro.insere()
+                }  
+            }
+
+            function pausar(){
+                obstaculo.pausa();
+                estadoAtual = estados.pausado;
+               
+                
+
+                if(estadoAtual == estados.pausado){
+                botaoPlay = document.createElement("button");
+                botaoPlay.id = "botaoPlay";
+                botaoPlay.innerText="Play";
+                botaoPlay.setAttribute('onclick', 'play()');
+                document.body.appendChild(botaoPlay);
+                }
+            }
+
+            function play(){
+                obstaculo.play();
+                estadoAtual = estados.jogando;
+                
+                botaoPlay = document.getElementById("botaoPlay");
+               
+                botaoPlay.remove();
+
+                
+            }
+
+            function main (){
+                ALTURA = window.innerHeight;
+                LARGURA = window.innerWidth;
+
+                if(LARGURA>= 500){
+                    LARGURA=600;
+                    ALTURA=600;
+                }
+
+                canvas = document.createElement("canvas");
+                canvas.width = LARGURA;
+                canvas.height = ALTURA;
+                canvas.style.border = "1px solid #000"
+                ctx = canvas.getContext("2d");
+                document.body.appendChild(canvas);
+              //  document.addEventListener("mousedown", clique);
+
+                botaoPular = document.createElement("button");
+                botaoPular.id = "botaoPular";
+                botaoPular.innerText="Iniciar";
+                botaoPular.setAttribute('onclick', 'clique()');
+                
+                document.body.appendChild(botaoPular);
+
+                botaoAtirar = document.createElement("button");
+                botaoAtirar.id = "botaoAtirar";
+                botaoAtirar.innerText="Atirar";
+                botaoAtirar.setAttribute('onclick', 'atirar()');
+                
+                document.body.appendChild(botaoAtirar);
+                                        
+                estadoAtual = estados.jogar;
+                
+               
+
+                recorde = localStorage.getItem("recorde");
+
+                if (recorde == null){
+                    recorde = 0
+                }
+                img=new Image();
+                img.src = "img.png";
+                roda();
+            }
+
+            function roda(){
+                atualiza();
+                desenha();
+                botoes();
+                window.requestAnimationFrame(roda);
+            }
+
+            function atualiza(){
+                frames++;
+
+                bloco.atualiza();
+
+                if(estadoAtual == estados.jogando){
+
+
+
+                    
+                obstaculo.atualiza();
+                tiro.atualiza();
+                tiroMonstro.atualiza();
+                //tiroMonstro.insere();
+                }
+                
+                
+                
+                
+            }
+
+            function botoes(){
+
+
+            }
+
+            function desenha(){
+                ctx.fillStyle = "#50beff";
+                ctx.fillRect(0,0,LARGURA, ALTURA)
+                imgBloco.desenha(bloco.x,bloco.y);
+             
+             
+                ctx.fillStyle = "#fff";
+                ctx.font = "40px Arial";
+                ctx.fillText(bloco.score, 30,68);
+
+                ctx.fillStyle = "#fff";
+                ctx.font = "40px Arial";
+                ctx.fillText(matou, LARGURA - 80, 68);
+
+
+                if(estadoAtual == estados.jogar){
+                    ctx.fillStyle = "green";
+                    ctx.fillRect(LARGURA/2 - 50, ALTURA/2 -50, 100,100);
+                 
+                } 
+                
+                else if(estadoAtual == estados.perdeu){
+
+                   
+                                
+                    ctx.fillStyle = "red";
+                    ctx.fillRect(LARGURA/2 - 50, ALTURA/2 -50, 100,100);
+                    
+                    ctx.fillStyle = "#fff";
+                    ctx.fillText("Perdeu!", LARGURA/2 -70, ALTURA/2-150)
+
+                    ctx.save();
+                    ctx.translate(LARGURA/2, ALTURA/2);
+                    ctx.fillStyle = "#fff";
+
+                    if (bloco.score > recorde){
+                        ctx.fillText("Novo Record!", -150, -65)
+                    }
+                    else if (recorde < 10){
+                        ctx.fillText("Record " + recorde, -99, -65)
+                    }
+                    else if (recorde >= 10 && recorde < 100){
+                        ctx.fillText("Record " + recorde, -112, -65)
+                    }
+                    else {
+                        ctx.fillText("Record " + recorde, -125, -65)
+                    }
+
+                    if (bloco.score < 10){
+                    ctx.fillText(bloco.score, -13,19);
+                    }
+                    else if (bloco.score >= 10 && bloco.score <100 ){
+                    ctx.fillText(bloco.score, -26,19); 
+                    }
+                    else {
+                    ctx.fillText(bloco.score, -39,19); 
+                    }
+
+                    ctx.fillStyle = "#fff";
+                    ctx.font = "40px Arial";
+                    ctx.fillText("Destruição " + matou, -112, 90);
+                    
+                    
+                    
+                    ctx.restore();
+                }
+                else if(estadoAtual == estados.pausado){
+                    ctx.fillStyle = "blue";
+                    ctx.fillRect(LARGURA/2 - 50, ALTURA/2 -50, 100,100);
+                    obstaculo.desenha();
+                    tiro.desenha();
+
+                } 
+                
+                else if(estadoAtual == estados.jogando){
+                    obstaculo.desenha();
+                    tiro.desenha();
+                    tiroMonstro.desenha();
+                }
+                
+                
+                chao.desenha();
+                
+                bloco.desenha();
+                
+                
+               
+                
+            }
+
+            main();
+
+
+        </script>
+    </body>
+========
+=======
+>>>>>>> 5bc77733c80a1177faa4a3f514dc0b9c3a407273
 <!DOCTYPE html>
 <html>
     <head>
@@ -612,4 +1231,8 @@
 
         </script>
     </body>
+<<<<<<< HEAD
+>>>>>>>> 5bc77733c80a1177faa4a3f514dc0b9c3a407273:Jogo1.0.html
+=======
+>>>>>>> 5bc77733c80a1177faa4a3f514dc0b9c3a407273
 </html>
