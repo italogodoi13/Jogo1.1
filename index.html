@@ -61,7 +61,8 @@
     <body>
         
         
-        <script>
+        <script src="menu.js">
+    /*
             var img, cenario,canvas, ctx, ALTURA, LARGURA, frames = 0, maxPulos = 3, velocidade = 1, estadoAtual, recorde, canvas2, 
             botao, botao2, velocidadeBala = 2,velocidadeBalaMonstro=2,inicioObstaculoGlobal=[],inicioBalaMonstroGlobal= [], alturaObs, matou=0, dano = 10, danoMonstro=10,  vida = 100,vidaTotal = 100,
             vidaTotalBloco=100, botaoPausa,
@@ -83,8 +84,8 @@
                 }
             },
             bloco = {
-                x:50,
-                y:0,
+                x:-50,
+                y:380,
                 altura:imgBloco.altura,
                 largura:imgBloco.largura,
                 cor:"#ff4e4e",
@@ -95,6 +96,13 @@
                 score:0,
 
                 atualiza:function(){
+
+                //faz o bloco principal entrar no cenario da esqueda -50 até 50
+                    if (this.x <= 50){
+                    this.x += velocidade;
+                    }
+                //faz o bloco principal entrar no cenario da esqueda -50 até 50
+
                     this.velocidade += this.gravidade;
                     this.y += this.velocidade;
 
@@ -220,7 +228,7 @@
             tiro={
                 bala:[],                
                 cor:"#000",                
-                inicioBala:bloco.x + 100,
+                inicioBala:bloco.x + 215,
 
                 insere: function (){
                     if(bloco.y +bloco.altura  == chao.y && estadoAtual == estados.jogando ){
@@ -232,6 +240,7 @@
                     });
                     }
                 },
+
 
                 atualiza: function(){
                     for(var i=0, tam=this.bala.length;i<tam;i++){
@@ -271,7 +280,7 @@
                             this.bala.pop();
                            
                             vidaTotal -= dano
-
+                        //o obstaculo explode depois que a vida chegar em zero
                             if(vidaTotal <= 0){
                                 obstaculo._obs.pop();
                                 inicioObstaculoGlobal = []
@@ -279,12 +288,82 @@
                            
                                 vidaTotal = 50;
                             }
-                           
+                        //o obstaculo explode depois que a vida chegar em zero  
                             
                         }                    
                     }
                 }
             },
+
+            tiroBala2={
+                bala:[],                
+                cor:"#000",                
+                inicioBala:bloco.x + 215,
+
+                insere: function (){
+                    if(bloco.y +bloco.altura  == chao.y && estadoAtual == estados.jogando ){
+                    this.bala.unshift({
+                        x: this.inicioBala,
+                        largura: 20,
+                        altura: 10,
+                        
+                    });
+                    }
+                },
+
+                atualiza: function(){
+                    for(var i=0, tam=this.bala.length;i<tam;i++){
+                        _bala = this.bala[i];
+                        _bala.x += velocidadeBala;
+                    
+                     if (_bala.x > LARGURA){
+                         this.bala.splice(i,1);
+                         tam--;
+                         i--;
+                     }
+                    }
+                },
+
+                limpa: function(){
+                    this.bala=[];
+                },
+
+                desenha: function(){
+                    for (var i=0, tam =this.bala.length; i<tam;i++){
+                        _bala = this.bala[i];
+                        
+                     //   ctx.fillStyle = this.cor;
+                      //  ctx.fillRect(_bala.x, chao.y - 68, _bala.largura, _bala.altura);
+                        imgBala2Bloco.desenha(_bala.x,chao.y -110); 
+
+                        
+                        // desenho do life do obstaculo
+                        if (inicioObstaculoGlobal >= 0 && obstaculo._obs.length > 0){
+                        ctx.fillStyle = "#000";
+                        ctx.fillRect(inicioObstaculoGlobal, chao.y - obstaculo.altura_obs - 15 , vidaTotal, 5);
+                        }
+                        // desenho do life do obstaculo
+
+                        if (inicioObstaculoGlobal <= _bala.x + _bala.largura && inicioObstaculoGlobal[0] >= bloco.x + bloco.largura  ){                        
+                              
+                            this.bala.pop();
+                           
+                            vidaTotal -= dano
+                        //o obstaculo explode depois que a vida chegar em zero
+                            if(vidaTotal <= 0){
+                                obstaculo._obs.pop();
+                                inicioObstaculoGlobal = []
+                                matou++;
+                           
+                                vidaTotal = 50;
+                            }
+                        //o obstaculo explode depois que a vida chegar em zero  
+                            
+                        }                    
+                    }
+                }
+            },
+
             tiroMonstro={
                 balaMonstro:[],
                 cor:"#000",
@@ -314,33 +393,40 @@
                 for(var i=0, tam=this.balaMonstro.length;i<tam;i++){
                     _balaMonstro = this.balaMonstro[i]
                     _balaMonstro.x -= velocidadeBalaMonstro;
-
-                    if(_balaMonstro.x <= bloco.x + bloco.largura + _balaMonstro.largura &&  /*permite pular a bala----->*/ this.YBala <= (bloco.y + bloco.altura)){
+                
+//explode a bala do monstro depois que atingir o bloco 
+//principal e nao atinge se pular
+                    if(_balaMonstro.x <= bloco.x + bloco.largura - 55+ _balaMonstro.largura &&  /*permite pular a bala-----> this.YBala <= (bloco.y + bloco.altura)){
                         this.balaMonstro.splice(i,1);
                         vidaTotalBloco -= danoMonstro;
-                    // diminui a vida do bloco principal
+//explode a bala do monstro depois que atingir o bloco 
+//principal e nao atinge se pular
+
+// diminui a vida do bloco principal
                     if (_balaMonstro.x <= bloco.x){ 
                         vidaTotalBloco += danoMonstro;
                     }
-                    // diminui a vida do bloco principal
+// diminui a vida do bloco principal
 
                         tam--;
                         i--;
 
                     }
                   
-                // aqui é pra destruir o bloco principal
+// aqui é pra destruir o bloco principal
                     if (vidaTotalBloco<= 9){
                         estadoAtual = estados.perdeu
 
-                        //apaga o botao de pausa se o jogo for perdido pelos tiros dos OBS
+    //apaga o botao de pausa se o jogo for perdido pelos tiros dos OBS
+
                             apagarBotaoPausa = document.getElementById("botaoPausa");
                             if (apagarBotaoPausa.parentNode){
                                 apagarBotaoPausa.parentNode.removeChild(apagarBotaoPausa);
                             }   
-                        //apaga o botao de pausa se o jogo for perdido pelos tiros dos OBS
+
+    //apaga o botao de pausa se o jogo for perdido pelos tiros dos OBS
                     }
-                // aqui é pra destruir o bloco principal
+// aqui é pra destruir o bloco principal
                 }
                 },
 
@@ -352,9 +438,10 @@
                     for(var i=0, tam=this.balaMonstro.length;i<tam;i++){
                         _balaMonstro = this.balaMonstro[i];
 
-                        ctx.fillStyle= this.cor;
-                        ctx.fillRect(_balaMonstro.x - _balaMonstro.largura, this.YBala, _balaMonstro.largura, _balaMonstro.altura);
-                        
+                        //ctx.fillStyle= this.cor;
+                        //ctx.fillRect(_balaMonstro.x - _balaMonstro.largura, this.YBala, _balaMonstro.largura, _balaMonstro.altura);
+                        imgBalaMonstro.desenha(_balaMonstro.x - _balaMonstro.largura, this.YBala);
+
                     // desenha o life do bloco principal
                     if (obstaculo._obs.length > 0){
                         ctx.fillStyle= this.corVida;
@@ -413,8 +500,9 @@
             function atirar2(event){
                 if(obstaculo._obs.length > 0){
                 dano = 25;
-                tiro.insere()
+                tiroBala2.insere()
                 }  
+            
             }
 
             function pausar(){
@@ -509,6 +597,7 @@
                     
                 obstaculo.atualiza();
                 tiro.atualiza();
+                tiroBala2.atualiza();
                 tiroMonstro.atualiza();
                 //tiroMonstro.insere();
                 }
@@ -597,12 +686,14 @@
                     ctx.fillRect(LARGURA/2 - 50, ALTURA/2 -50, 100,100);
                     obstaculo.desenha();
                     tiro.desenha();
+                    tiroBala2.desenha();
 
                 } 
                 
                 else if(estadoAtual == estados.jogando){
                     obstaculo.desenha();
                     tiro.desenha();
+                    tiroBala2.desenha();
                     tiroMonstro.desenha();
                 }
                 
@@ -617,8 +708,9 @@
             }
 
             main();
-
+*/
 
         </script>
+        
     </body>
 </html>
